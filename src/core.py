@@ -23,7 +23,7 @@ def analyze_solar_panel_images(image_paths: List[Path], labels: List[str] = None
     return pd.DataFrame(results)
 
 def plot_detection_results(results: pd.DataFrame, title: str, output_path: Path):
- """Plot detection results """
+    """Plot detection results """
     fig, ax = plt.subplots(figsize=(10, 6))
     
     ax.bar(range(len(results)), results['detection_score'], 
