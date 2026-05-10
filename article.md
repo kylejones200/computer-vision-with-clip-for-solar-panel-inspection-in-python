@@ -1,47 +1,30 @@
+---
+author: "Kyle Jones"
+date_published: "March 20, 2025"
+date_exported_from_medium: "November 10, 2025"
+canonical_link: "https://medium.com/@kyle-t-jones/computer-vision-with-clip-for-solar-panel-inspection-in-python-e4020d35a24e"
+---
+
 # Computer Vision with CLIP for Solar Panel Inspection in Python
 
-Solar panel efficiency directly impacts renewable energy production,
-with contamination and defects significantly reducing performance...
+Solar panel efficiency directly impacts renewable energy production, with contamination and defects significantly reducing performance...
 
 ### Computer Vision with CLIP for Solar Panel Inspection in Python
-Solar panel efficiency directly impacts renewable energy production,
-with contamination and defects significantly reducing performance. This
-project uses CLIP for automated solar panel inspection.
+Solar panel efficiency directly impacts renewable energy production, with contamination and defects significantly reducing performance. This project uses CLIP for automated solar panel inspection.
 
-CLIP (Contrastive Language-Image Pre-Training) was developed by OpenAI
-and uses LLMs for image classification. This makes it particularly
-suitable for solar panel inspection tasks, as it can easily adapt to
-various defect types without extensive retraining.
+CLIP (Contrastive Language-Image Pre-Training) was developed by OpenAI and uses LLMs for image classification. This makes it particularly suitable for solar panel inspection tasks, as it can easily adapt to various defect types without extensive retraining.
 
-There are a few tasks for predictive maintenance using computer vision
-on solar panels like detecting: 1/things that cover part of the PV
-module (and therefore reduce efficiency) like bird droppings, snow, or
-dust; 2/physical damage to the module like broken panels (usually when
-something falls on a panel); 3/corrosion; or 4/vegetation encroachment
-when the vegetation under the panels grows too big and interferes with
-the modules.
+There are a few tasks for predictive maintenance using computer vision on solar panels like detecting: 1/things that cover part of the PV module (and therefore reduce efficiency) like bird droppings, snow, or dust; 2/physical damage to the module like broken panels (usually when something falls on a panel); 3/corrosion; or 4/vegetation encroachment when the vegetation under the panels grows too big and interferes with the modules.
 
-In this project, we use the Hugging Face Transformers library to access
-the CLIP model. The image dataset is sourced from a collection of solar
-panel images, split into "clean" and "not clean" categories.
+In this project, we use the Hugging Face Transformers library to access the CLIP model. The image dataset is sourced from a collection of solar panel images, split into "clean" and "not clean" categories.
 
-The [image set comes from
-Kaggle](https://www.kaggle.com/datasets/pythonafroz/solar-panel-images). This project was inspired by this
-tutorial by [Priyanka
-Kumari](https://www.labellerr.com/blog/ml-begineers-guide-onsolar-panel-inspection/).
+The [image set comes from Kaggle](https://www.kaggle.com/datasets/pythonafroz/solar-panel-images). This project was inspired by this tutorial by [Priyanka Kumari](https://www.labellerr.com/blog/ml-begineers-guide-onsolar-panel-inspection/).
 
-I had a lot of trouble getting the kagglehub download to work. I ended
-up downloading the images the old fashioned way to set up the folder
-structured needed for the analysis.
+I had a lot of trouble getting the kagglehub download to work. I ended up downloading the images the old fashioned way to set up the folder structured needed for the analysis.
 
-I built the model to classify the condition of the PV modules based on
-the images into one of 6 classes. CLIP did very poorly with that
-approach because it basically measuring how close CLIP's answer was to
-an existing category name. CLIP performed better by setting this up as a
-binary classification problem.
+I built the model to classify the condition of the PV modules based on the images into one of 6 classes. CLIP did very poorly with that approach because it basically measuring how close CLIP's answer was to an existing category name. CLIP performed better by setting this up as a binary classification problem.
 
-The dataset is loaded and preprocessed using TensorFlow's image dataset
-utilities.
+The dataset is loaded and preprocessed using TensorFlow's image dataset utilities.
 
 ```python
 import tensorflow as tf
@@ -91,8 +74,7 @@ class_names = train_ds.class_names
 print("Classes:", class_names)
 ```
 
-One of CLIP's strengths is its ability to understand natural language
-descriptions. We define a set of prompts for each class:
+One of CLIP's strengths is its ability to understand natural language descriptions. We define a set of prompts for each class:
 
 ``` 
 
@@ -115,8 +97,7 @@ text_descriptions = [
 ]
 ```
 
-The \`predict_clip\` function processes images and text prompts to
-generate predictions:
+The \`predict_clip\` function processes images and text prompts to generate predictions:
 
 ```python
 # Function to predict using CLIP with ensemble of prompts
@@ -265,39 +246,22 @@ plt.show()
 ```
 
 
-We evaluate the model's performance using different temperature values
-and thresholds to find the optimal configuration. The results are
-visualized using confusion matrices and sample predictions.
+We evaluate the model's performance using different temperature values and thresholds to find the optimal configuration. The results are visualized using confusion matrices and sample predictions.
 
-The implementation demonstrates CLIP's effectiveness in solar panel
-defect detection. Its zero-shot learning capabilities allow for easy
-adaptation to new defect types by simply updating the text prompts. This
-flexibility makes CLIP particularly suitable for industrial applications
-where defect categories may evolve over time.
+The implementation demonstrates CLIP's effectiveness in solar panel defect detection. Its zero-shot learning capabilities allow for easy adaptation to new defect types by simply updating the text prompts. This flexibility makes CLIP particularly suitable for industrial applications where defect categories may evolve over time.
 
-By comparison, using a transfer learning approach with MobileNetv2 had
-an accuracy of .87. Priyanka used VGG16 in the tutorial. I found that
-mnv2 has about the same accuracy and is much faster to fine-tune for our
-focus on solar panel inspection.
+By comparison, using a transfer learning approach with MobileNetv2 had an accuracy of .87. Priyanka used VGG16 in the tutorial. I found that mnv2 has about the same accuracy and is much faster to fine-tune for our focus on solar panel inspection.
 
 
 <figcaption>mnv2 transfer learning with solar panels</figcaption>
 
 
 #### Technical Considerations
-CLIP's performance is be sensitive to the choice of text prompts.
-Initially I had only one prompt for each case and this was not enough.
-The model's zero-shot capabilities allow for easy expansion to new
-defect types without retraining but the accuracy for zero shot is lower
-than supervised learning. CLIP is fast to run and required no training.
-But it was harder to control than a custom CNN model.
+CLIP's performance is be sensitive to the choice of text prompts. Initially I had only one prompt for each case and this was not enough. The model's zero-shot capabilities allow for easy expansion to new defect types without retraining but the accuracy for zero shot is lower than supervised learning. CLIP is fast to run and required no training. But it was harder to control than a custom CNN model.
 
-This CLIP-based solution provides a flexible foundation for automated
-solar panel inspection, offering scalable deployment options and
-consistent performance across varying operational conditions.
+This CLIP-based solution provides a flexible foundation for automated solar panel inspection, offering scalable deployment options and consistent performance across varying operational conditions.
 
-Energy Robotics has a great video about drone inspection for tanks. The
-approach is similar for inspecting solar farms.
+Energy Robotics has a great video about drone inspection for tanks. The approach is similar for inspecting solar farms.
 
 
 <h1 id="an-error-occurred." class="message">An error occurred.</h1>
@@ -459,12 +423,3 @@ def plot_predictions(dataset, num_images=25):
 # Plot sample predictions
 plot_predictions(val_ds_binary)
 ```
-
-
-::::::::By [Kyle Jones](https://medium.com/@kyle-t-jones) on
-[March 20, 2025](https://medium.com/p/e4020d35a24e).
-
-[Canonical
-link](https://medium.com/@kyle-t-jones/computer-vision-with-clip-for-solar-panel-inspection-in-python-e4020d35a24e)
-
-Exported from [Medium](https://medium.com) on November 10, 2025.
