@@ -1,5 +1,9 @@
 # CLIP Computer Vision for Solar Panels
 
+Published: yes
+Medium: [https://medium.com/@kyle-t-jones/computer-vision-with-clip-for-solar-panel-inspection-in-python-e4020d35a24e](https://medium.com/@kyle-t-jones/computer-vision-with-clip-for-solar-panel-inspection-in-python-e4020d35a24e)
+
+
 This project demonstrates using CLIP (Contrastive Language-Image Pre-training) for solar panel detection and analysis.
 
 ## Project Structure
