@@ -12,13 +12,12 @@ import numpy as np
 import seaborn as sns
 
 # %matplotlib inline  # Jupyter-only
-import tensorflow as tf
 
 warnings.filterwarnings("ignore")
 
 img_height = 244
 img_width = 244
-train_ds = tf.keras.utils.image_dataset_from_directory(
+train_ds = utils.image_dataset_from_directory(
     "/kaggle/input/solar-panel-images/Faulty_solar_panel",
     validation_split=0.2,
     subset="training",
@@ -28,7 +27,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     shuffle=True,
 )
 
-val_ds = tf.keras.utils.image_dataset_from_directory(
+val_ds = utils.image_dataset_from_directory(
     "/kaggle/input/solar-panel-images/Faulty_solar_panel",
     validation_split=0.2,
     subset="validation",
@@ -58,9 +57,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import tensorflow as tf
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from tensorflow.keras.utils import plot_model
 
 plot_model(model, to_file="cnn_plot.png", show_shapes=True, show_layer_names=True)
 
@@ -80,7 +77,7 @@ print("Path to dataset files:", path)
 img_height = 244
 img_width = 244
 
-train_ds = tf.keras.utils.image_dataset_from_directory(
+train_ds = utils.image_dataset_from_directory(
     path,
     validation_split=0.2,
     subset="training",
@@ -90,7 +87,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     shuffle=True,
 )
 
-val_ds = tf.keras.utils.image_dataset_from_directory(
+val_ds = utils.image_dataset_from_directory(
     path,
     validation_split=0.2,
     subset="validation",
@@ -112,18 +109,18 @@ for images, labels in train_ds.take(1):
         plt.axis("off")
 
 
-base_model = tf.keras.applications.VGG16(
+base_model = applications.VGG16(
     include_top=False, weights="imagenet", input_shape=(img_height, img_width, 3)
 )
 base_model.trainable = False
 
-inputs = tf.keras.Input(shape=(img_height, img_width, 3))
-x = tf.keras.applications.vgg16.preprocess_input(inputs)
+inputs = Input(shape=(img_height, img_width, 3))
+x = applications.vgg16.preprocess_input(inputs)
 x = base_model(x, training=False)
-x = tf.keras.layers.GlobalAveragePooling2D()(x)
-x = tf.keras.layers.Dropout(0.3)(x)
-outputs = tf.keras.layers.Dense(90)(x)
-model = tf.keras.Model(inputs, outputs)
+x = nn.GlobalAveragePooling2D()(x)
+x = nn.Dropout(0.3)(x)
+outputs = nn.Dense(90)(x)
+model = Model(inputs, outputs)
 
 model.summary()
 
@@ -139,24 +136,12 @@ plot_model(model, to_file="cnn_plot.png", show_shapes=True, show_layer_names=Tru
 
 # --- code cell ---
 
-model.compile(
-    optimizer=tf.keras.optimizers.Adam(0.001),
-    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+,
+    loss=losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
 epoch = 15
-model.fit(
-    train_ds,
-    validation_data=val_ds,
-    epochs=epoch,
-    callbacks=[
-        tf.keras.callbacks.EarlyStopping(
-            monitor="val_loss",
-            min_delta=1e-2,
-            patience=3,
-            verbose=1,
-            restore_best_weights=True,
-        )
+_train_torch(model, train_ds, val_ds)
     ],
 )
 
@@ -169,23 +154,12 @@ for layer in base_model.layers[:14]:
     layer.trainable = False
 model.summary()
 
-model.compile(
-    optimizer=tf.keras.optimizers.Adam(0.0001),
-    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+,
+    loss=losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
 epoch = 15
-history = model.fit(
-    train_ds,
-    validation_data=val_ds,
-    epochs=epoch,
-    callbacks=[
-        tf.keras.callbacks.EarlyStopping(
-            monitor="val_loss",
-            min_delta=1e-2,
-            patience=3,
-            verbose=1,
-        )
+history = _train_torch(model, train_ds, val_ds)
     ],
 )
 
@@ -219,8 +193,8 @@ for images, labels in val_ds.take(1):
     for i in range(16):
         ax = plt.subplot(4, 4, i + 1)
         plt.imshow(images[i].numpy().astype("uint8"))
-        predictions = model.predict(tf.expand_dims(images[i], 0))
-        score = tf.nn.softmax(predictions[0])
+        predictions = _predict_torch(model, images[i].unsqueeze(0))
+        score = torch.softmax(predictions[0], dim=-1)
         if class_names[labels[i]] == class_names[np.argmax(score)]:
             plt.title("Actual: " + class_names[labels[i]])
             plt.ylabel(
@@ -242,7 +216,6 @@ for images, labels in val_ds.take(1):
 import kagglehub
 import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow as tf
 import torch
 from PIL import Image
 from transformers import CLIPModel, CLIPProcessor
@@ -259,7 +232,7 @@ model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 # Load and split dataset
-train_ds = tf.keras.utils.image_dataset_from_directory(
+train_ds = utils.image_dataset_from_directory(
     path,
     validation_split=0.2,
     subset="training",
@@ -268,7 +241,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     seed=42,
 )
 
-val_ds = tf.keras.utils.image_dataset_from_directory(
+val_ds = utils.image_dataset_from_directory(
     path,
     validation_split=0.2,
     subset="validation",
@@ -281,6 +254,63 @@ class_names = train_ds.class_names
 
 
 # Function to predict using CLIP
+class _MLPForecaster(nn.Module):
+    """MLP forecaster (auto-generated PyTorch replacement for Keras Sequential)."""
+    def __init__(self, n_features: int, output_size: int = 1):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Flatten(),
+            nn.LazyLinear(90), nn.ReLU(),
+            nn.Linear(90, 256), nn.ReLU(),
+            nn.Linear(256, 256), nn.ReLU(),
+            nn.Linear(256, 256), nn.ReLU(),
+            nn.Linear(256, 256), nn.ReLU(),
+            nn.Linear(256, 1),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.net(x)
+
+def _train_torch(model: nn.Module, X_train, y_train, *,
+                 epochs: int = 50, batch_size: int = 32,
+                 lr: float = 0.001, validation_split: float = 0.2,
+                 patience: int = 3) -> nn.Module:
+    """Standard training loop replacing  + model.fit()."""
+    X_t = torch.FloatTensor(X_train)
+    y_t = torch.FloatTensor(y_train)
+    if y_t.dim() == 1:
+        y_t = y_t.unsqueeze(1)
+    n_val = max(1, int(len(X_t) * validation_split))
+    X_val, y_val = X_t[-n_val:], y_t[-n_val:]
+    X_tr, y_tr = X_t[:-n_val], y_t[:-n_val]
+    loader = DataLoader(TensorDataset(X_tr, y_tr), batch_size=batch_size, shuffle=True)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    criterion = nn.MSELoss()
+    best, wait = float("inf"), 0
+    for _ in range(epochs):
+        model.train()
+        for xb, yb in loader:
+            optimizer.zero_grad()
+            criterion(model(xb), yb).backward()
+            optimizer.step()
+        model.eval()
+        with torch.no_grad():
+            val_loss = criterion(model(X_val), y_val).item()
+        if val_loss < best:
+            best, wait = val_loss, 0
+        else:
+            wait += 1
+            if wait >= patience:
+                break
+    return model
+
+
+def _predict_torch(model: nn.Module, X_test) -> "np.ndarray":
+    """Replace model.predict()."""
+    model.eval()
+    with torch.no_grad():
+        return model(torch.FloatTensor(X_test)).numpy()
+
 def predict_clip(image_batch):
     images = [Image.fromarray(img.numpy().astype("uint8")) for img in image_batch]
     inputs = processor(images=images, return_tensors="pt", padding=True)
@@ -336,7 +366,6 @@ plt.show()
 import kagglehub
 import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow as tf
 import torch
 from PIL import Image
 from transformers import CLIPModel, CLIPProcessor
@@ -352,7 +381,7 @@ model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 # Load and split dataset
-train_ds = tf.keras.utils.image_dataset_from_directory(
+train_ds = utils.image_dataset_from_directory(
     path,
     validation_split=0.2,
     subset="training",
@@ -361,7 +390,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     seed=42,
 )
 
-val_ds = tf.keras.utils.image_dataset_from_directory(
+val_ds = utils.image_dataset_from_directory(
     path,
     validation_split=0.2,
     subset="validation",
@@ -375,40 +404,37 @@ class_names = train_ds.class_names
 
 # Update the model architecture
 def create_model(num_classes):
-    base_model = tf.keras.applications.VGG19(
+    base_model = applications.VGG19(
         include_top=False, weights="imagenet", input_shape=(img_height, img_width, 3)
     )
     base_model.trainable = False
 
-    inputs = tf.keras.Input(shape=(img_height, img_width, 3))
-    x = tf.keras.applications.vgg19.preprocess_input(inputs)
+    inputs = Input(shape=(img_height, img_width, 3))
+    x = applications.vgg19.preprocess_input(inputs)
     x = base_model(x, training=False)
-    x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    x = tf.keras.layers.Dense(256, activation="relu")(x)
-    x = tf.keras.layers.Dropout(0.5)(x)
-    outputs = tf.keras.layers.Dense(num_classes)(x)
-    return tf.keras.Model(inputs, outputs)
+    x = nn.GlobalAveragePooling2D()(x)
+    x = nn.Dense(256, activation="relu")(x)
+    x = nn.Dropout(0.5)(x)
+    outputs = nn.Dense(num_classes)(x)
+    return Model(inputs, outputs)
 
 
 # Create and compile the model
 num_classes = len(class_names)
 model = create_model(num_classes)
 
-model.compile(
-    optimizer=tf.keras.optimizers.Adam(0.001),
-    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+,
+    loss=losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
 
 # Train the model
 epochs = 20
-early_stopping = tf.keras.callbacks.EarlyStopping(
+early_stopping = callbacks.EarlyStopping(
     monitor="val_loss", min_delta=1e-2, patience=5, verbose=1, restore_best_weights=True
 )
 
-history = model.fit(
-    train_ds, validation_data=val_ds, epochs=epochs, callbacks=[early_stopping]
-)
+history = _train_torch(model, train_ds, val_ds)
 
 # Plot training history
 plt.figure(figsize=(12, 4))
@@ -439,7 +465,7 @@ print(f"Test accuracy: {test_accuracy:.2f}")
 def plot_images_with_predictions(dataset, num_images=25):
     plt.figure(figsize=(20, 20))
     for images, labels in dataset.take(1):
-        predictions = model.predict(images)
+        predictions = _predict_torch(model, images)
         for i in range(min(num_images, len(images))):
             ax = plt.subplot(5, 5, i + 1)
             plt.imshow(images[i].numpy().astype("uint8"))
@@ -464,7 +490,7 @@ plot_images_with_predictions(val_ds)
 y_true = []
 y_pred = []
 for images, labels in val_ds:
-    predictions = model.predict(images)
+    predictions = _predict_torch(model, images)
     y_true.extend(labels.numpy())
     y_pred.extend(np.argmax(predictions, axis=1))
 
@@ -475,7 +501,6 @@ print(classification_report(y_true, y_pred, target_names=class_names))
 
 import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow as tf
 from sklearn.metrics import classification_report
 
 # Set image dimensions
@@ -483,7 +508,7 @@ img_height = 244
 img_width = 244
 
 # Load and split dataset
-train_ds = tf.keras.utils.image_dataset_from_directory(
+train_ds = utils.image_dataset_from_directory(
     "/content/a/Faulty_solar_panel/",
     validation_split=0.2,
     subset="training",
@@ -493,7 +518,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     shuffle=True,
 )
 
-val_ds = tf.keras.utils.image_dataset_from_directory(
+val_ds = utils.image_dataset_from_directory(
     "/content/a/Faulty_solar_panel",
     validation_split=0.2,
     subset="validation",
@@ -514,19 +539,19 @@ val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 # Create the model
 def create_model(num_classes):
-    base_model = tf.keras.applications.MobileNetV2(
+    base_model = applications.MobileNetV2(
         input_shape=(img_height, img_width, 3), include_top=False, weights="imagenet"
     )
     base_model.trainable = False
 
-    model = tf.keras.Sequential(
+    model = Sequential(
         [
             base_model,
-            tf.keras.layers.GlobalAveragePooling2D(),
-            tf.keras.layers.Dropout(0.2),
-            tf.keras.layers.Dense(256, activation="relu"),
-            tf.keras.layers.Dropout(0.5),
-            tf.keras.layers.Dense(num_classes),
+            nn.GlobalAveragePooling2D(),
+            nn.Dropout(0.2),
+            nn.Dense(256, activation="relu"),
+            nn.Dropout(0.5),
+            nn.Dense(num_classes),
         ]
     )
     return model
@@ -534,22 +559,19 @@ def create_model(num_classes):
 
 # Create and compile model
 model = create_model(len(class_names))
-model.compile(
-    optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
-    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+,
+    loss=losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
 
 # Callbacks
-early_stopping = tf.keras.callbacks.EarlyStopping(
+early_stopping = callbacks.EarlyStopping(
     monitor="val_loss", patience=5, restore_best_weights=True
 )
 
 # Train the model
 epochs = 20
-history = model.fit(
-    train_ds, validation_data=val_ds, epochs=epochs, callbacks=[early_stopping]
-)
+history = _train_torch(model, train_ds, val_ds)
 
 # Plot training results
 plt.figure(figsize=(12, 4))
@@ -576,7 +598,7 @@ plt.show()
 def plot_predictions(dataset, num_images=25):
     plt.figure(figsize=(20, 20))
     for images, labels in dataset.take(1):
-        predictions = model.predict(images)
+        predictions = _predict_torch(model, images)
         for i in range(min(num_images, len(images))):
             ax = plt.subplot(5, 5, i + 1)
             plt.imshow(images[i].numpy().astype("uint8"))
@@ -598,7 +620,7 @@ def plot_predictions(dataset, num_images=25):
 y_true = []
 y_pred = []
 for images, labels in val_ds:
-    predictions = model.predict(images)
+    predictions = _predict_torch(model, images)
     y_true.extend(labels.numpy())
     y_pred.extend(np.argmax(predictions, axis=1))
 
@@ -625,7 +647,6 @@ zf.close()
 
 import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow as tf
 import torch
 from PIL import Image
 from sklearn.metrics import classification_report
@@ -636,7 +657,7 @@ img_height = 244
 img_width = 244
 
 # Load and split dataset
-train_ds = tf.keras.utils.image_dataset_from_directory(
+train_ds = utils.image_dataset_from_directory(
     "/content/a/Faulty_solar_panel/",
     validation_split=0.2,
     subset="training",
@@ -646,7 +667,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     shuffle=True,
 )
 
-val_ds = tf.keras.utils.image_dataset_from_directory(
+val_ds = utils.image_dataset_from_directory(
     "/content/a/Faulty_solar_panel",
     validation_split=0.2,
     subset="validation",
@@ -667,19 +688,19 @@ val_ds_mobile = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 # 1. MobileNetV2 Model
 def create_mobilenet_model(num_classes):
-    base_model = tf.keras.applications.MobileNetV2(
+    base_model = applications.MobileNetV2(
         input_shape=(img_height, img_width, 3), include_top=False, weights="imagenet"
     )
     base_model.trainable = False
 
-    model = tf.keras.Sequential(
+    model = Sequential(
         [
             base_model,
-            tf.keras.layers.GlobalAveragePooling2D(),
-            tf.keras.layers.Dropout(0.2),
-            tf.keras.layers.Dense(256, activation="relu"),
-            tf.keras.layers.Dropout(0.5),
-            tf.keras.layers.Dense(num_classes),
+            nn.GlobalAveragePooling2D(),
+            nn.Dropout(0.2),
+            nn.Dense(256, activation="relu"),
+            nn.Dropout(0.5),
+            nn.Dense(num_classes),
         ]
     )
     return model
@@ -687,9 +708,8 @@ def create_mobilenet_model(num_classes):
 
 # Create and compile MobileNetV2 model
 mobile_model = create_mobilenet_model(len(class_names))
-mobile_model.compile(
-    optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
-    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+,
+    loss=losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
 
@@ -725,16 +745,11 @@ def get_clip_predictions(images, class_names):
 
 # Training MobileNetV2
 print("Training MobileNetV2 Model...")
-early_stopping = tf.keras.callbacks.EarlyStopping(
+early_stopping = callbacks.EarlyStopping(
     monitor="val_loss", patience=5, restore_best_weights=True
 )
 
-history_mobile = mobile_model.fit(
-    train_ds_mobile,
-    validation_data=val_ds_mobile,
-    epochs=20,
-    callbacks=[early_stopping],
-)
+history_mobile = _train_torch(mobile_model, train_ds_mobile, val_ds_mobile)
 
 
 # Evaluate both models
@@ -746,7 +761,7 @@ def evaluate_both_models(val_ds, class_names):
 
     for images, labels in val_ds:
         # MobileNetV2 predictions
-        mobile_pred = mobile_model.predict(images)
+        mobile_pred = _predict_torch(mobile_model, images)
         y_pred_mobile.extend(np.argmax(mobile_pred, axis=1))
 
         # CLIP predictions
@@ -794,7 +809,7 @@ def plot_training_history(history):
 def plot_comparison_predictions(val_ds, num_images=25):
     plt.figure(figsize=(20, 20))
     for images, labels in val_ds.take(1):
-        mobile_predictions = mobile_model.predict(images)
+        mobile_predictions = _predict_torch(mobile_model, images)
         clip_predictions = get_clip_predictions(images, class_names)
 
         for i in range(min(num_images, len(images))):
@@ -828,7 +843,6 @@ plot_comparison_predictions(val_ds)
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import tensorflow as tf
 from sklearn.metrics import classification_report, confusion_matrix
 
 # Set image dimensions
@@ -836,7 +850,7 @@ img_height = 244
 img_width = 244
 
 # Load and split dataset
-train_ds = tf.keras.utils.image_dataset_from_directory(
+train_ds = utils.image_dataset_from_directory(
     "/content/a/Faulty_solar_panel/",
     validation_split=0.2,
     subset="training",
@@ -846,7 +860,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     shuffle=True,
 )
 
-val_ds = tf.keras.utils.image_dataset_from_directory(
+val_ds = utils.image_dataset_from_directory(
     "/content/a/Faulty_solar_panel",
     validation_split=0.2,
     subset="validation",
@@ -859,7 +873,7 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
 
 # Function to convert multi-class labels to binary (Clean vs Not Clean)
 def to_binary_labels(images, labels):
-    binary_labels = tf.where(labels == 1, 0, 1)  # Assuming 'Clean' is label 1
+    binary_labels = torch.where(labels == 1, 0, 1)  # Assuming 'Clean' is label 1
     return images, binary_labels
 
 
@@ -875,19 +889,19 @@ val_ds_binary = val_ds_binary.cache().prefetch(buffer_size=AUTOTUNE)
 
 # Create the model
 def create_model():
-    base_model = tf.keras.applications.MobileNetV2(
+    base_model = applications.MobileNetV2(
         input_shape=(img_height, img_width, 3), include_top=False, weights="imagenet"
     )
     base_model.trainable = False
 
-    model = tf.keras.Sequential(
+    model = Sequential(
         [
             base_model,
-            tf.keras.layers.GlobalAveragePooling2D(),
-            tf.keras.layers.Dropout(0.2),
-            tf.keras.layers.Dense(256, activation="relu"),
-            tf.keras.layers.Dropout(0.5),
-            tf.keras.layers.Dense(1, activation="sigmoid"),  # Binary classification
+            nn.GlobalAveragePooling2D(),
+            nn.Dropout(0.2),
+            nn.Dense(256, activation="relu"),
+            nn.Dropout(0.5),
+            nn.Dense(1, activation="sigmoid"),  # Binary classification
         ]
     )
     return model
@@ -895,25 +909,19 @@ def create_model():
 
 # Create and compile model
 model = create_model()
-model.compile(
-    optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+,
     loss="binary_crossentropy",
     metrics=["accuracy"],
 )
 
 # Callbacks
-early_stopping = tf.keras.callbacks.EarlyStopping(
+early_stopping = callbacks.EarlyStopping(
     monitor="val_loss", patience=5, restore_best_weights=True
 )
 
 # Train the model
 epochs = 20
-history = model.fit(
-    train_ds_binary,
-    validation_data=val_ds_binary,
-    epochs=epochs,
-    callbacks=[early_stopping],
-)
+history = _train_torch(model, train_ds_binary, val_ds_binary)
 
 # Plot training results
 plt.figure(figsize=(12, 4))
@@ -939,7 +947,7 @@ plt.show()
 y_true = []
 y_pred = []
 for images, labels in val_ds_binary:
-    predictions = model.predict(images)
+    predictions = _predict_torch(model, images)
     y_true.extend(labels.numpy())
     y_pred.extend((predictions > 0.5).astype(int).flatten())
 
@@ -963,7 +971,7 @@ plt.show()
 def plot_predictions(dataset, num_images=25):
     plt.figure(figsize=(20, 20))
     for images, labels in dataset.take(1):
-        predictions = model.predict(images)
+        predictions = _predict_torch(model, images)
         for i in range(min(num_images, len(images))):
             ax = plt.subplot(5, 5, i + 1)
             plt.imshow(images[i].numpy().astype("uint8"))
@@ -990,7 +998,6 @@ plot_predictions(val_ds_binary)
 import kagglehub
 import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow as tf
 import torch
 from PIL import Image
 from transformers import CLIPModel, CLIPProcessor
@@ -1006,7 +1013,7 @@ model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 # Load and split dataset
-train_ds = tf.keras.utils.image_dataset_from_directory(
+train_ds = utils.image_dataset_from_directory(
     path,
     validation_split=0.2,
     subset="training",
@@ -1015,7 +1022,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     seed=42,
 )
 
-val_ds = tf.keras.utils.image_dataset_from_directory(
+val_ds = utils.image_dataset_from_directory(
     path,
     validation_split=0.2,
     subset="validation",
@@ -1083,7 +1090,6 @@ plt.show()
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import tensorflow as tf
 import torch
 from PIL import Image
 from sklearn.metrics import auc, classification_report, confusion_matrix, roc_curve
@@ -1097,7 +1103,7 @@ model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 # Load and split dataset
-train_ds = tf.keras.utils.image_dataset_from_directory(
+train_ds = utils.image_dataset_from_directory(
     "/content/a/Faulty_solar_panel/",
     validation_split=0.2,
     subset="training",
@@ -1106,7 +1112,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     seed=42,
 )
 
-val_ds = tf.keras.utils.image_dataset_from_directory(
+val_ds = utils.image_dataset_from_directory(
     "/content/a/Faulty_solar_panel/",
     validation_split=0.2,
     subset="validation",
@@ -1123,7 +1129,7 @@ print("Original classes:", original_class_names)
 def to_binary_labels(images, labels):
     # Assuming 'Clean' is index 1 in your class names
     clean_idx = original_class_names.index("Clean")
-    binary_labels = tf.where(
+    binary_labels = torch.where(
         labels == clean_idx, 0, 1
     )  # 0 for Clean, 1 for everything else
     return images, binary_labels
@@ -1281,7 +1287,6 @@ import shutil
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import tensorflow as tf
 import torch
 from PIL import Image
 from sklearn.metrics import auc, classification_report, confusion_matrix, roc_curve
@@ -1335,7 +1340,7 @@ binary_dataset_path = "/content/binary_solar_panels/"
 img_height, img_width = 224, 224  # CLIP expects 224x224 images
 
 # Load and split dataset
-train_ds = tf.keras.utils.image_dataset_from_directory(
+train_ds = utils.image_dataset_from_directory(
     binary_dataset_path,
     validation_split=0.2,
     subset="training",
@@ -1345,7 +1350,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     shuffle=True,
 )
 
-val_ds = tf.keras.utils.image_dataset_from_directory(
+val_ds = utils.image_dataset_from_directory(
     binary_dataset_path,
     validation_split=0.2,
     subset="validation",
@@ -1508,7 +1513,6 @@ print(f"AUC-ROC: {roc_auc:.3f}")
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import tensorflow as tf
 import torch
 from PIL import Image
 from sklearn.metrics import classification_report, confusion_matrix
@@ -1522,17 +1526,17 @@ model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 # Data augmentation
-data_augmentation = tf.keras.Sequential(
+data_augmentation = Sequential(
     [
-        tf.keras.layers.RandomFlip("horizontal"),
-        tf.keras.layers.RandomRotation(0.1),
-        tf.keras.layers.RandomBrightness(0.2),
-        tf.keras.layers.RandomContrast(0.2),
+        nn.RandomFlip("horizontal"),
+        nn.RandomRotation(0.1),
+        nn.RandomBrightness(0.2),
+        nn.RandomContrast(0.2),
     ]
 )
 
 # Load datasets with augmentation
-train_ds = tf.keras.utils.image_dataset_from_directory(
+train_ds = utils.image_dataset_from_directory(
     "/content/binary_solar_panels/",
     validation_split=0.2,
     subset="training",
@@ -1541,7 +1545,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     seed=42,
 )
 
-val_ds = tf.keras.utils.image_dataset_from_directory(
+val_ds = utils.image_dataset_from_directory(
     "/content/binary_solar_panels/",
     validation_split=0.2,
     subset="validation",
@@ -1728,7 +1732,6 @@ plt.show()
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import tensorflow as tf
 import torch
 from PIL import Image
 from sklearn.metrics import classification_report, confusion_matrix, f1_score
@@ -1742,7 +1745,7 @@ model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 # Load datasets
-train_ds = tf.keras.utils.image_dataset_from_directory(
+train_ds = utils.image_dataset_from_directory(
     "/content/binary_solar_panels/",
     validation_split=0.2,
     subset="training",
@@ -1751,7 +1754,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     seed=42,
 )
 
-val_ds = tf.keras.utils.image_dataset_from_directory(
+val_ds = utils.image_dataset_from_directory(
     "/content/binary_solar_panels/",
     validation_split=0.2,
     subset="validation",
