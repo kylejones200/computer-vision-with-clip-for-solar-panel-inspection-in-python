@@ -3,14 +3,13 @@
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from typing import List, Dict
 import matplotlib.pyplot as plt
 import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
-def analyze_solar_panel_images(image_paths: List[Path], labels: List[str] = None) -> pd.DataFrame:
+def analyze_solar_panel_images(image_paths: list[Path], labels: list[str] = None) -> pd.DataFrame:
     """Analyze solar panel images (placeholder for CLIP implementation)."""
     results = []
     for i, img_path in enumerate(image_paths):

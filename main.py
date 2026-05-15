@@ -16,7 +16,7 @@ def load_config(config_path: Path = None) -> dict:
     if config_path is None:
         config_path = Path(__file__).parent / 'config.yaml'
     
-    with open(config_path, 'r') as f:
+    with open(config_path) as f:
         return yaml.safe_load(f)
 
 def main():
@@ -45,7 +45,7 @@ def main():
     logging.info(f"Analyzing {len(image_paths)} images...")
     results = analyze_solar_panel_images(image_paths)
     
-    logging.info(f"\nDetection Results:")
+    logging.info("\nDetection Results:")
     logging.info(f"Mean score: {results['detection_score'].mean():.4f}")
     logging.info(f"Max score: {results['detection_score'].max():.4f}")
     
