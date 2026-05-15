@@ -532,7 +532,6 @@ class_names = train_ds.class_names
 print(f"Classes: {class_names}")
 
 # Data preprocessing
-AUTOTUNE = tf.data.AUTOTUNE
 train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
 val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
@@ -681,7 +680,6 @@ class_names = train_ds.class_names
 print(f"Classes: {class_names}")
 
 # Data preprocessing for MobileNetV2
-AUTOTUNE = tf.data.AUTOTUNE
 train_ds_mobile = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
 val_ds_mobile = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
@@ -882,7 +880,6 @@ train_ds_binary = train_ds.map(to_binary_labels)
 val_ds_binary = val_ds.map(to_binary_labels)
 
 # Data preprocessing
-AUTOTUNE = tf.data.AUTOTUNE
 train_ds_binary = train_ds_binary.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
 val_ds_binary = val_ds_binary.cache().prefetch(buffer_size=AUTOTUNE)
 
