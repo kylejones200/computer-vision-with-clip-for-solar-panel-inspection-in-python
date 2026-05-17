@@ -5,7 +5,6 @@ Magics and shell lines are commented out. Run with a normal Python interpreter."
 
 # --- code cell ---
 
-import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,7 +12,6 @@ import seaborn as sns
 
 # %matplotlib inline  # Jupyter-only
 
-warnings.filterwarnings("ignore")
 
 img_height = 244
 img_width = 244
@@ -62,11 +60,9 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 plot_model(model, to_file="cnn_plot.png", show_shapes=True, show_layer_names=True)
 
 
-import warnings
 
 import kagglehub
 
-warnings.filterwarnings("ignore")
 
 
 # Download latest version
