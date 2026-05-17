@@ -1,0 +1,79 @@
+"""Auto-split from legacy monolithic script."""
+
+import os
+import shutil
+import warnings
+from zipfile import ZipFile
+import kagglehub
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+import tensorflow as tf
+import torch
+from PIL import Image
+from sklearn.metrics import accuracy_score, auc, classification_report, confusion_matrix, f1_score, precision_score, recall_score, roc_curve
+from tensorflow.keras.utils import plot_model
+from transformers import CLIPModel, CLIPProcessor
+
+def download_dataset_3() -> None:
+    path = "/content/a/Faulty_solar_panel/"
+
+    img_height, img_width = (224, 224)
+
+    model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+
+    processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+
+    train_ds = tf.keras.utils.image_dataset_from_directory(
+        path,
+        validation_split=0.2,
+        subset="training",
+        image_size=(img_height, img_width),
+        batch_size=32,
+        seed=42,
+    )
+
+    val_ds = tf.keras.utils.image_dataset_from_directory(
+        path,
+        validation_split=0.2,
+        subset="validation",
+        image_size=(img_height, img_width),
+        batch_size=32,
+        seed=42,
+    )
+
+    class_names = train_ds.class_names
+
+    correct = 0
+
+    total = 0
+
+    for images, labels in val_ds:
+        predictions = predict_clip(images)
+        predicted_classes = predictions.argmax(dim=-1).numpy()
+        correct += (predicted_classes == labels.numpy()).sum()
+        total += len(labels)
+
+    accuracy = correct / total
+
+    print(f"Validation accuracy: {accuracy:.2f}")
+
+    plt.figure(figsize=(20, 20))
+
+    for images, labels in val_ds.take(1):
+        predictions = predict_clip(images)
+        predicted_classes = predictions.argmax(dim=-1).numpy()
+        for i in range(16):
+            ax = plt.subplot(4, 4, i + 1)
+            plt.imshow(images[i].numpy().astype("uint8"))
+            color = "green" if labels[i] == predicted_classes[i] else "red"
+            plt.title(f"Actual: {class_names[labels[i]]}")
+            plt.ylabel(
+                f"Predicted: {class_names[predicted_classes[i]]}",
+                fontdict={"color": color},
+            )
+            plt.gca().axes.set_xticklabels([])
+            plt.gca().axes.set_yticklabels([])
+
+    plt.show()
+
