@@ -43,3 +43,11 @@ CLIP (Contrastive Language-Image Pre-training):
 - Requires image files in specified directory.
 - CLIP model downloads on first use (requires internet).
 - Full implementation requires transformers library setup.
+
+## Disclaimer
+
+Educational/demo code only. Not financial, safety, or engineering advice. Use at your own risk. Verify results independently before any production or operational use.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

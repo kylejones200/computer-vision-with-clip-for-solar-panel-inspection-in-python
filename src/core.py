@@ -32,18 +32,20 @@ def plot_detection_results(
     results: pd.DataFrame, title: str, output_path: Path, plot: bool = False
 ):
     """Plot detection results"""
-    if plot:
-        fig, ax = plt.subplots(figsize=(10, 6))
+    if not plot:
+        return
 
-        ax.bar(
-            range(len(results)),
-            results["detection_score"],
-            color="#4A90A4",
-            alpha=0.7,
-            edgecolor="none",
-        )
-        ax.set_xlabel("Image ID")
-        ax.set_ylabel("Detection Score")
+    fig, ax = plt.subplots(figsize=(10, 6))
 
-        plt.savefig(output_path, dpi=100, bbox_inches="tight")
-        plt.close()
+    ax.bar(
+        range(len(results)),
+        results["detection_score"],
+        color="#4A90A4",
+        alpha=0.7,
+        edgecolor="none",
+    )
+    ax.set_xlabel("Image ID")
+    ax.set_ylabel("Detection Score")
+
+    plt.savefig(output_path, dpi=100, bbox_inches="tight")
+    plt.close()
