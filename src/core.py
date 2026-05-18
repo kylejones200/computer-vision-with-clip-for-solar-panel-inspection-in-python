@@ -1,14 +1,10 @@
 """Core functions for CLIP computer vision with solar panels."""
 
-import logging
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 def analyze_solar_panel_images(
@@ -36,7 +32,6 @@ def plot_detection_results(
         return
 
     fig, ax = plt.subplots(figsize=(10, 6))
-
     ax.bar(
         range(len(results)),
         results["detection_score"],
@@ -46,6 +41,5 @@ def plot_detection_results(
     )
     ax.set_xlabel("Image ID")
     ax.set_ylabel("Detection Score")
-
     plt.savefig(output_path, dpi=100, bbox_inches="tight")
     plt.close()

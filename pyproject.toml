@@ -3,6 +3,7 @@ name = "computer-vision-with-clip-for-solar-panel-inspecti"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "pydantic>=2.10.0",
     "kagglehub>=1.0.1",
     "matplotlib>=3.10.9",
     "numpy>=2.4.4",
@@ -16,3 +17,7 @@ dependencies = [
     "torch>=2.12.0",
     "transformers>=5.8.1",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

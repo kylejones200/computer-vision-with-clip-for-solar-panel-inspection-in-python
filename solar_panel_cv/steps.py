@@ -2,18 +2,14 @@
 
 import os
 import shutil
-import warnings
 from zipfile import ZipFile
-import kagglehub
+
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 import tensorflow as tf
 import torch
 from PIL import Image
-from sklearn.metrics import accuracy_score, auc, classification_report, confusion_matrix, f1_score, precision_score, recall_score, roc_curve
-from tensorflow.keras.utils import plot_model
-from transformers import CLIPModel, CLIPProcessor
+
 
 def create_mobilenet_model(num_classes):
     base_model = tf.keras.applications.MobileNetV2(
@@ -83,7 +79,7 @@ def plot_comparison_predictions(val_ds, num_images=25):
         mobile_predictions = mobile_model.predict(images)
         clip_predictions = get_clip_predictions(images, class_names)
         for i in range(min(num_images, len(images))):
-            ax = plt.subplot(5, 5, i + 1)
+            plt.subplot(5, 5, i + 1)
             plt.imshow(images[i].numpy().astype("uint8"))
             mobile_pred = np.argmax(mobile_predictions[i])
             clip_pred = np.argmax(clip_predictions[i])
@@ -106,7 +102,7 @@ def plot_images_with_predictions(dataset, num_images=25):
     for images, labels in dataset.take(1):
         predictions = model.predict(images)
         for i in range(min(num_images, len(images))):
-            ax = plt.subplot(5, 5, i + 1)
+            plt.subplot(5, 5, i + 1)
             plt.imshow(images[i].numpy().astype("uint8"))
             predicted_class = np.argmax(predictions[i])
             actual_class = labels[i].numpy()
@@ -127,7 +123,7 @@ def plot_predictions(dataset, num_images=25):
         predictions = predict_clip_with_confidence(images)
         predicted_classes = (predictions[:, 1] > best_threshold).astype(int)
         for i in range(min(num_images, len(images))):
-            ax = plt.subplot(5, 5, i + 1)
+            plt.subplot(5, 5, i + 1)
             plt.imshow(images[i].numpy().astype("uint8"))
             pred_class = class_names[predicted_classes[i]]
             true_class = class_names[labels[i]]
@@ -248,9 +244,7 @@ def notebook_step_004() -> None:
         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=["accuracy"],
     )
-
     epoch = 15
-
     model.fit(
         train_ds,
         validation_data=val_ds,
@@ -269,9 +263,7 @@ def notebook_step_004() -> None:
 
 def notebook_step_009() -> None:
     zf = ZipFile("archive (1).zip", "r")
-
     zf.extractall("a")
-
     zf.close()
 
 
@@ -291,4 +283,3 @@ def main() -> None:
     set_up_binary_classification_directories()
     set_image_dimensions_5()
     set_image_dimensions_6()
-
