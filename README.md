@@ -6,6 +6,14 @@ Medium: [https://medium.com/@kyle-t-jones/computer-vision-with-clip-for-solar-pa
 
 This project demonstrates using CLIP (Contrastive Language-Image Pre-training) for solar panel detection and analysis.
 
+## Business context
+
+Solar panel efficiency directly impacts renewable energy production, with contamination and defects significantly reducing performance...
+
+Solar panel efficiency directly impacts renewable energy production, with contamination and defects significantly reducing performance. This project uses CLIP for automated solar panel inspection.
+
+CLIP (Contrastive Language-Image Pre-Training) was developed by OpenAI and uses LLMs for image classification. This makes it particularly suitable for solar panel inspection tasks, as it can easily adapt to various defect types without extensive retraining.
+
 ## Project Structure
 
 ```
